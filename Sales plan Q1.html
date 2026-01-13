@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модель планирования продаж</title>
+    <style>
+        :root {
+            --color-primary: #2180a1;
+            --color-primary-hover: #1a6683;
+            --color-primary-active: #1a5a73;
+            --color-success: #2b8a41;
+            --color-error: #c0152f;
+            --color-border: #d4d4d4;
+            --color-bg: #f5f5f5;
+            --color-text: #1a1a1a;
+            --color-text-secondary: #606060;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--color-primary), #1a6683);
+            padding: 20px;
+        }
+
+        .login-form {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .login-form h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            color: var(--color-text);
+        }
+
+        .login-form p {
+            color: var(--color-text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-align: left;
+            color: var(--color-text);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: var(--font-family);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(33, 128, 161, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn:active {
+            background-color: var(--color-primary-active);
+        }
+
+        .error-message {
+            color: var(--color-error);
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fee;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .user-info {
+            color: var(--color-text-secondary);
+            font-size: 13px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .app-container {
+            display: none;
+            padding: 20px;
+        }
+
+        .app-container.show {
+            display: block;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--color-primary), #1a6683);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .user-role {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .logout-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 15px;
+            border: 1px solid white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-btn:hover {
+            color: var(--color-text);
+        }
+
+        .tab-btn.hidden {
+            display: none;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .department-section {
+            margin-bottom: 30px;
+            border: 1px solid var(--color-border);
+            padding: 20px;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+
+        .department-section h2 {
+            margin-top: 0;
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-primary);
+            padding-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th {
+            color: #1a1a1a;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid var(--color-border);
+            background-color: #e8e8e8;
+        }
+
+        td {
+            padding: 12px;
+            border: 1px solid var(--color-border);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-family: var(--font-family);
+            font-size: 14px;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(33, 128, 161, 0.1);
+        }
+
+        .summary-table th {
+            background-color: #e8e8e8;
+            color: #1a1a1a;
+        }
+
+        .summary-table tr:nth-child(even) {
+            background-color: #f5faf7;
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .product-row {
+            font-weight: 500;
+            background-color: #f0f8fb;
+        }
+
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .date-info {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginContainer" class="login-container">
+        <div class="login-form">
+            <h1>Система планирования продаж</h1>
+            <p>Введите пароль для доступа</p>
+            <div class="error-message" id="errorMessage">Неверный пароль. Попробуйте снова.</div>
+            <div class="form-group">
+                <label for="passwordInput">Пароль:</label>
+                <input type="password" id="passwordInput" placeholder="Введите пароль">
+            </div>
+            <button class="btn" onclick="authenticate()">Войти</button>
+            <div class="user-info">
+                <strong>Пароли для доступа:</strong><br>
+                Отдел 1: 123<br>
+                Отдел 2: 234<br>
+                Отдел 3: 345<br>
+                Администратор: 456
+            </div>
+            <div class="date-info">Январь-март 2026 г.</div>
+        </div>
+    </div>
+
+    <div id="appContainer" class="app-container">
+        <div class="header">
+            <div>
+                <h1>Модель планирования продаж</h1>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">Январь, февраль, март 2026 г.</p>
+            </div>
+            <div class="header-right">
+                <div class="user-role" id="userRoleDisplay"></div>
+                <button class="logout-btn" onclick="logout()">Выход</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" id="btn-dept1" onclick="switchTab('dept1')">Техника</button>
+            <button class="tab-btn" id="btn-dept2" onclick="switchTab('dept2')">PSSR</button>
+            <button class="tab-btn" id="btn-dept3" onclick="switchTab('dept3')">Ключевые клиенты</button>
+            <button class="tab-btn" id="btn-dept4" onclick="switchTab('dept4')">Тендеры</button>
+            <button class="tab-btn" id="btn-dept5" onclick="switchTab('dept5')">Генераторы</button>
+            <button class="tab-btn" id="btn-dept6" onclick="switchTab('dept6')">Находка</button>
+            <button class="tab-btn" id="btn-summary" onclick="switchTab('summary')">Итоговая сводка</button>
+        </div>
+
+        <div id="dept1" class="tab-content active">
+            <div class="department-section">
+                <h2>Техника</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Январь</th>
+                            <th>Февраль</th>
+                            <th>Март</th>
+                            <th>Итого 1 квартал</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="product-row">
+                            <td>Техника</td>
+                            <td><input type="number" id="d1_m1_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d1_m2_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d1_m3_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d1_total_p1">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Генераторы</td>
+                            <td><input type="number" id="d1_m1_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d1_m2_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d1_m3_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d1_total_p2">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Сервис</td>
+                            <td><input type="number" id="d1_m1_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d1_m2_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d1_m3_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d1_total_p3">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Запасные части</td>
+                            <td><input type="number" id="d1_m1_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d1_m2_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d1_m3_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d1_total_p4">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="dept2" class="tab-content">
+            <div class="department-section">
+                <h2>PSSR</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Январь</th>
+                            <th>Февраль</th>
+                            <th>Март</th>
+                            <th>Итого 1 квартал</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="product-row">
+                            <td>Техника</td>
+                            <td><input type="number" id="d2_m1_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d2_m2_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d2_m3_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d2_total_p1">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Генераторы</td>
+                            <td><input type="number" id="d2_m1_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d2_m2_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d2_m3_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d2_total_p2">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Сервис</td>
+                            <td><input type="number" id="d2_m1_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d2_m2_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d2_m3_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d2_total_p3">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Запасные части</td>
+                            <td><input type="number" id="d2_m1_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d2_m2_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d2_m3_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d2_total_p4">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="dept3" class="tab-content">
+            <div class="department-section">
+                <h2>Ключевые клиенты</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Январь</th>
+                            <th>Февраль</th>
+                            <th>Март</th>
+                            <th>Итого 1 квартал</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="product-row">
+                            <td>Техника</td>
+                            <td><input type="number" id="d3_m1_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d3_m2_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d3_m3_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d3_total_p1">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Генераторы</td>
+                            <td><input type="number" id="d3_m1_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d3_m2_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d3_m3_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d3_total_p2">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Сервис</td>
+                            <td><input type="number" id="d3_m1_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d3_m2_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d3_m3_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d3_total_p3">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Запасные части</td>
+                            <td><input type="number" id="d3_m1_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d3_m2_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d3_m3_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d3_total_p4">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="dept4" class="tab-content">
+            <div class="department-section">
+                <h2>Тендеры</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Январь</th>
+                            <th>Февраль</th>
+                            <th>Март</th>
+                            <th>Итого 1 квартал</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="product-row">
+                            <td>Техника</td>
+                            <td><input type="number" id="d4_m1_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d4_m2_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d4_m3_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d4_total_p1">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Генераторы</td>
+                            <td><input type="number" id="d4_m1_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d4_m2_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d4_m3_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d4_total_p2">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Сервис</td>
+                            <td><input type="number" id="d4_m1_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d4_m2_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d4_m3_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d4_total_p3">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Запасные части</td>
+                            <td><input type="number" id="d4_m1_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d4_m2_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d4_m3_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d4_total_p4">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="dept5" class="tab-content">
+            <div class="department-section">
+                <h2>Генераторы</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Январь</th>
+                            <th>Февраль</th>
+                            <th>Март</th>
+                            <th>Итого 1 квартал</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="product-row">
+                            <td>Техника</td>
+                            <td><input type="number" id="d5_m1_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d5_m2_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d5_m3_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d5_total_p1">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Генераторы</td>
+                            <td><input type="number" id="d5_m1_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d5_m2_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d5_m3_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d5_total_p2">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Сервис</td>
+                            <td><input type="number" id="d5_m1_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d5_m2_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d5_m3_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d5_total_p3">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Запасные части</td>
+                            <td><input type="number" id="d5_m1_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d5_m2_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d5_m3_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d5_total_p4">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="dept6" class="tab-content">
+            <div class="department-section">
+                <h2>Находка</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Январь</th>
+                            <th>Февраль</th>
+                            <th>Март</th>
+                            <th>Итого 1 квартал</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="product-row">
+                            <td>Техника</td>
+                            <td><input type="number" id="d6_m1_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d6_m2_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d6_m3_p1" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d6_total_p1">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Генераторы</td>
+                            <td><input type="number" id="d6_m1_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d6_m2_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d6_m3_p2" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d6_total_p2">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Сервис</td>
+                            <td><input type="number" id="d6_m1_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d6_m2_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d6_m3_p3" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d6_total_p3">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Запасные части</td>
+                            <td><input type="number" id="d6_m1_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d6_m2_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><input type="number" id="d6_m3_p4" value="0" min="0" oninput="calculateTotals()"></td>
+                            <td><span class="summary-value" id="d6_total_p4">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="summary" class="tab-content">
+            <div class="department-section">
+                <h2>Итоговая сводка по всем отделам</h2>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Январь</th>
+                            <th>Февраль</th>
+                            <th>Март</th>
+                            <th>Итого 1 квартал</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="product-row">
+                            <td>Техника</td>
+                            <td><span class="summary-value" id="sum_m1_p1">0</span></td>
+                            <td><span class="summary-value" id="sum_m2_p1">0</span></td>
+                            <td><span class="summary-value" id="sum_m3_p1">0</span></td>
+                            <td><span class="summary-value" id="sum_total_p1">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Генераторы</td>
+                            <td><span class="summary-value" id="sum_m1_p2">0</span></td>
+                            <td><span class="summary-value" id="sum_m2_p2">0</span></td>
+                            <td><span class="summary-value" id="sum_m3_p2">0</span></td>
+                            <td><span class="summary-value" id="sum_total_p2">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Сервис</td>
+                            <td><span class="summary-value" id="sum_m1_p3">0</span></td>
+                            <td><span class="summary-value" id="sum_m2_p3">0</span></td>
+                            <td><span class="summary-value" id="sum_m3_p3">0</span></td>
+                            <td><span class="summary-value" id="sum_total_p3">0</span></td>
+                        </tr>
+                        <tr class="product-row">
+                            <td>Запасные части</td>
+                            <td><span class="summary-value" id="sum_m1_p4">0</span></td>
+                            <td><span class="summary-value" id="sum_m2_p4">0</span></td>
+                            <td><span class="summary-value" id="sum_m3_p4">0</span></td>
+                            <td><span class="summary-value" id="sum_total_p4">0</span></td>
+                        </tr>
+                        <tr style="background-color: #e8f4f8; font-weight: 700;">
+                            <td>ИТОГО ПО ВСЕМ ПРОДУКТАМ</td>
+                            <td><span class="summary-value" id="sum_month1_total">0</span></td>
+                            <td><span class="summary-value" id="sum_month2_total">0</span></td>
+                            <td><span class="summary-value" id="sum_month3_total">0</span></td>
+                            <td><span class="summary-value" id="sum_grand_total">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" onclick="exportData()">Экспортировать данные</button>
+                <button class="btn-secondary" id="clearBtn" onclick="clearAllData()" style="display: none;">Очистить все данные</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const USERS = {
+            '123': { role: 'Отдел 1', dept: 1 },
+            '234': { role: 'Отдел 2', dept: 2 },
+            '345': { role: 'Отдел 3', dept: 3 },
+            '456': { role: 'Администратор', dept: null }
+        };
+
+        let currentUser = null;
+
+        function authenticate() {
+            const password = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (password in USERS) {
+                currentUser = USERS[password];
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('appContainer').classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                setupUserAccess();
+            } else {
+                errorMessage.style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function setupUserAccess() {
+            const userRoleDisplay = document.getElementById('userRoleDisplay');
+            userRoleDisplay.textContent = 'Пользователь: ' + currentUser.role;
+
+            const btnDept1 = document.getElementById('btn-dept1');
+            const btnDept2 = document.getElementById('btn-dept2');
+            const btnDept3 = document.getElementById('btn-dept3');
+            const btnDept4 = document.getElementById('btn-dept4');
+            const btnDept5 = document.getElementById('btn-dept5');
+            const btnDept6 = document.getElementById('btn-dept6');
+            const btnSummary = document.getElementById('btn-summary');
+            const clearBtn = document.getElementById('clearBtn');
+
+            if (currentUser.dept === 1) {
+                btnDept2.classList.add('hidden');
+                btnDept3.classList.add('hidden');
+                btnDept4.classList.add('hidden');
+                btnDept5.classList.add('hidden');
+                btnDept6.classList.add('hidden');
+                btnSummary.classList.add('hidden');
+                switchTab('dept1');
+                makeAllInputsReadOnly(['d2', 'd3', 'd4', 'd5', 'd6']);
+            } else if (currentUser.dept === 2) {
+                btnDept1.classList.add('hidden');
+                btnDept3.classList.add('hidden');
+                btnDept4.classList.add('hidden');
+                btnDept5.classList.add('hidden');
+                btnDept6.classList.add('hidden');
+                btnSummary.classList.add('hidden');
+                switchTab('dept2');
+                makeAllInputsReadOnly(['d1', 'd3', 'd4', 'd5', 'd6']);
+            } else if (currentUser.dept === 3) {
+                btnDept1.classList.add('hidden');
+                btnDept2.classList.add('hidden');
+                btnDept4.classList.add('hidden');
+                btnDept5.classList.add('hidden');
+                btnDept6.classList.add('hidden');
+                btnSummary.classList.add('hidden');
+                switchTab('dept3');
+                makeAllInputsReadOnly(['d1', 'd2', 'd4', 'd5', 'd6']);
+            } else {
+                clearBtn.style.display = 'inline-block';
+                switchTab('summary');
+            }
+        }
+
+        function makeAllInputsReadOnly(departments) {
+            departments.forEach(dept => {
+                for (let m = 1; m <= 3; m++) {
+                    for (let p = 1; p <= 4; p++) {
+                        const input = document.getElementById(`${dept}_m${m}_p${p}`);
+                        if (input) {
+                            input.disabled = true;
+                            input.style.backgroundColor = '#f0f0f0';
+                            input.style.color = '#999';
+                            input.style.cursor = 'not-allowed';
+                        }
+                    }
+                }
+            });
+        }
+
+        function logout() {
+            document.getElementById('appContainer').classList.remove('show');
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('passwordInput').focus();
+            document.getElementById('errorMessage').style.display = 'none';
+            currentUser = null;
+        }
+
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.tab-btn:not(.hidden)');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            const tabElement = document.getElementById(tabName);
+            if (tabElement) {
+                tabElement.classList.add('active');
+                const btnElement = document.getElementById('btn-' + tabName);
+                if (btnElement && !btnElement.classList.contains('hidden')) {
+                    btnElement.classList.add('active');
+                }
+            }
+        }
+
+        function calculateTotals() {
+            const products = [
+                { id: 'p1', name: 'Техника' },
+                { id: 'p2', name: 'Генераторы' },
+                { id: 'p3', name: 'Сервис' },
+                { id: 'p4', name: 'Запасные части' }
+            ];
+
+            const departments = [
+                { prefix: 'd1', name: 'Техника' },
+                { prefix: 'd2', name: 'PSSR' },
+                { prefix: 'd3', name: 'Ключевые клиенты' },
+                { prefix: 'd4', name: 'Тендеры' },
+                { prefix: 'd5', name: 'Генераторы' },
+                { prefix: 'd6', name: 'Находка' }
+            ];
+
+            departments.forEach(dept => {
+                products.forEach(product => {
+                    const jan = parseInt(document.getElementById(`${dept.prefix}_m1_${product.id}`).value) || 0;
+                    const feb = parseInt(document.getElementById(`${dept.prefix}_m2_${product.id}`).value) || 0;
+                    const mar = parseInt(document.getElementById(`${dept.prefix}_m3_${product.id}`).value) || 0;
+                    const total = jan + feb + mar;
+                    document.getElementById(`${dept.prefix}_total_${product.id}`).textContent = total.toLocaleString('ru-RU');
+                });
+            });
+
+            products.forEach(product => {
+                let sumJan = 0, sumFeb = 0, sumMar = 0;
+
+                departments.forEach(dept => {
+                    const jan = document.getElementById(`${dept.prefix}_m1_${product.id}`);
+                    const feb = document.getElementById(`${dept.prefix}_m2_${product.id}`);
+                    const mar = document.getElementById(`${dept.prefix}_m3_${product.id}`);
+                    if (jan) sumJan += parseInt(jan.value) || 0;
+                    if (feb) sumFeb += parseInt(feb.value) || 0;
+                    if (mar) sumMar += parseInt(mar.value) || 0;
+                });
+
+                const sumTotal = sumJan + sumFeb + sumMar;
+
+                document.getElementById(`sum_m1_${product.id}`).textContent = sumJan.toLocaleString('ru-RU');
+                document.getElementById(`sum_m2_${product.id}`).textContent = sumFeb.toLocaleString('ru-RU');
+                document.getElementById(`sum_m3_${product.id}`).textContent = sumMar.toLocaleString('ru-RU');
+                document.getElementById(`sum_total_${product.id}`).textContent = sumTotal.toLocaleString('ru-RU');
+            });
+
+            let grandJan = 0, grandFeb = 0, grandMar = 0;
+
+            departments.forEach(dept => {
+                products.forEach(product => {
+                    const jan = document.getElementById(`${dept.prefix}_m1_${product.id}`);
+                    const feb = document.getElementById(`${dept.prefix}_m2_${product.id}`);
+                    const mar = document.getElementById(`${dept.prefix}_m3_${product.id}`);
+                    if (jan) grandJan += parseInt(jan.value) || 0;
+                    if (feb) grandFeb += parseInt(feb.value) || 0;
+                    if (mar) grandMar += parseInt(mar.value) || 0;
+                });
+            });
+
+            const grandTotal = grandJan + grandFeb + grandMar;
+
+            document.getElementById('sum_month1_total').textContent = grandJan.toLocaleString('ru-RU');
+            document.getElementById('sum_month2_total').textContent = grandFeb.toLocaleString('ru-RU');
+            document.getElementById('sum_month3_total').textContent = grandMar.toLocaleString('ru-RU');
+            document.getElementById('sum_grand_total').textContent = grandTotal.toLocaleString('ru-RU');
+        }
+
+        function exportData() {
+            let csvContent = 'Модель планирования продаж\nЯнварь-март 2026 г.\n\n';
+
+            const departments = [
+                { prefix: 'd1', name: 'Отдел 1' },
+                { prefix: 'd2', name: 'Отдел 2' },
+                { prefix: 'd3', name: 'Отдел 3' }
+            ];
+
+            const products = ['Техника', 'Генераторы', 'Сервис', 'Запасные части'];
+
+            departments.forEach(dept => {
+                csvContent += `${dept.name}\n`;
+                csvContent += 'Продукт,Январь,Февраль,Март,Итого\n';
+
+                products.forEach((product, index) => {
+                    const productId = `p${index + 1}`;
+                    const jan = document.getElementById(`${dept.prefix}_m1_${productId}`).value || '0';
+                    const feb = document.getElementById(`${dept.prefix}_m2_${productId}`).value || '0';
+                    const mar = document.getElementById(`${dept.prefix}_m3_${productId}`).value || '0';
+                    const total = document.getElementById(`${dept.prefix}_total_${productId}`).textContent || '0';
+
+                    csvContent += `${product},${jan},${feb},${mar},${total}\n`;
+                });
+
+                csvContent += '\n';
+            });
+
+            csvContent += 'Итоговая сводка по всем отделам\n';
+            csvContent += 'Продукт,Январь,Февраль,Март,Итого\n';
+
+            products.forEach((product, index) => {
+                const productId = `p${index + 1}`;
+                const jan = document.getElementById(`sum_m1_${productId}`).textContent || '0';
+                const feb = document.getElementById(`sum_m2_${productId}`).textContent || '0';
+                const mar = document.getElementById(`sum_m3_${productId}`).textContent || '0';
+                const total = document.getElementById(`sum_total_${productId}`).textContent || '0';
+
+                csvContent += `${product},${jan},${feb},${mar},${total}\n`;
+            });
+
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+            link.download = 'plan_prodazh_' + new Date().toISOString().slice(0, 10) + '.csv';
+            link.click();
+        }
+
+        function clearAllData() {
+            if (confirm('Вы уверены? Это действие невозможно отменить.')) {
+                const departments = ['d1', 'd2', 'd3'];
+                const months = ['m1', 'm2', 'm3'];
+                const products = ['p1', 'p2', 'p3', 'p4'];
+
+                departments.forEach(dept => {
+                    months.forEach(month => {
+                        products.forEach(product => {
+                            const inputId = `${dept}_${month}_${product}`;
+                            const input = document.getElementById(inputId);
+                            if (input && !input.disabled) input.value = '0';
+                        });
+                    });
+                });
+
+                calculateTotals();
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        window.addEventListener('load', function() {
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        authenticate();
+                    }
+                });
+                passwordInput.focus();
+            }
+            // Инициализация расчётов
+            calculateTotals();
+        });
+    </script>
+</body>
+</html>
